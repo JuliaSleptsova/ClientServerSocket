@@ -3,23 +3,35 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
-    public static void main(String[] args) throws IOException {
-        ServerSocket server = new ServerSocket(8000);
-        System.out.println("Server started");
+    public static void main(String[] args) {
 
-        Socket socket = server.accept();
-        System.out.println("Client connected");
+        try (
+                ServerSocket server = new ServerSocket(8000)
+        ) {
+            System.out.println("Server started");
 
-        OutputStream stream = socket.getOutputStream();
-        OutputStreamWriter writerStream = new OutputStreamWriter(stream);
-        BufferedWriter writer = new BufferedWriter(writerStream);
+            try (
+                    Socket socket = server.accept();
 
-        writer.write("HELLO FROM SERVER");
-        writer.newLine();
-        writer.flush();
+                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 
-        writer.close();
-        socket.close();
-        server.close();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))
+
+            ) {
+
+                String request = reader.readLine();
+                System.out.println("Request: " + request);
+                String response = "HELLO FROM SERVER: " + request;
+                System.out.println("Response: " + response);
+                writer.write(response);
+                writer.newLine();
+                writer.flush();
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
     }
 }
